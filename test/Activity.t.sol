@@ -14,11 +14,8 @@ contract CounterTest is Test {
     function testRegistration() public {
         address user = makeAddr("user");
 
-        Activity.Goal memory goal = Activity.Goal({
-            targetWorkoutsPerWeek: 5,
-            targetMinutesPerWeek: 150,
-            targetCaloriesPerWeek: 10000
-        });
+        Activity.Goal memory goal =
+            Activity.Goal({targetWorkoutsPerWeek: 5, targetMinutesPerWeek: 150, targetCaloriesPerWeek: 10000});
 
         vm.prank(user);
         activity.userRegistration(goal);

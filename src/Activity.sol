@@ -27,9 +27,9 @@ contract Activity {
         uint256 targetWorkoutsPerWeek; // Weekly workout target
         uint256 targetMinutesPerWeek; // Weekly duration target
         uint256 targetCaloriesPerWeek; // Weekly calorie burn target
-        // uint256 totalTargetWorkouts; // Lifetime workout target
-        // uint256 totalTargetMinutes; // Lifetime duration target
-        // uint256 totalTargetCalories; // Lifetime calorie burn target
+            // uint256 totalTargetWorkouts; // Lifetime workout target
+            // uint256 totalTargetMinutes; // Lifetime duration target
+            // uint256 totalTargetCalories; // Lifetime calorie burn target
     }
 
     // Weekly stats for tracking weekly progress
@@ -72,19 +72,9 @@ contract Activity {
 
     event NewUserCreated(address indexed _user);
     event GoalUpdated(address indexed _user);
-    event WeekCompleted(
-        address indexed _user,
-        uint256 _weekNumber,
-        uint256 _workoutsCompleted,
-        bool _weeklyGoalMet
-    );
+    event WeekCompleted(address indexed _user, uint256 _weekNumber, uint256 _workoutsCompleted, bool _weeklyGoalMet);
     event NewWeekStarted(address indexed _user, uint256 _time);
-    event WorkoutLogged(
-        address indexed _user,
-        WorkoutType _workoutType,
-        uint256 _sessionId,
-        uint256 _time
-    );
+    event WorkoutLogged(address indexed _user, WorkoutType _workoutType, uint256 _sessionId, uint256 _time);
 
     modifier validateUser() {
         if (!userProfile[msg.sender].isActive) {
@@ -109,58 +99,44 @@ contract Activity {
         userProfile[msg.sender].totalWorkouts = 0;
         userProfile[msg.sender].totalCalories = 0;
         userProfile[msg.sender].totalMinutes = 0;
-        userProfile[msg.sender].userGoals.targetCaloriesPerWeek = _userGoal
-            .targetCaloriesPerWeek;
-        userProfile[msg.sender].userGoals.targetMinutesPerWeek = _userGoal
-            .targetMinutesPerWeek;
-        userProfile[msg.sender].userGoals.targetWorkoutsPerWeek = _userGoal
-            .targetWorkoutsPerWeek;
+        userProfile[msg.sender].userGoals.targetCaloriesPerWeek = _userGoal.targetCaloriesPerWeek;
+        userProfile[msg.sender].userGoals.targetMinutesPerWeek = _userGoal.targetMinutesPerWeek;
+        userProfile[msg.sender].userGoals.targetWorkoutsPerWeek = _userGoal.targetWorkoutsPerWeek;
         userProfile[msg.sender].isActive = true;
 
         emit NewUserCreated(msg.sender);
     }
 
     function updateGoal(Goal calldata _userGoal) public validateUser {
-        userProfile[msg.sender].userGoals.targetCaloriesPerWeek = _userGoal
-            .targetCaloriesPerWeek;
-        userProfile[msg.sender].userGoals.targetMinutesPerWeek = _userGoal
-            .targetMinutesPerWeek;
-        userProfile[msg.sender].userGoals.targetWorkoutsPerWeek = _userGoal
-            .targetWorkoutsPerWeek;
+        userProfile[msg.sender].userGoals.targetCaloriesPerWeek = _userGoal.targetCaloriesPerWeek;
+        userProfile[msg.sender].userGoals.targetMinutesPerWeek = _userGoal.targetMinutesPerWeek;
+        userProfile[msg.sender].userGoals.targetWorkoutsPerWeek = _userGoal.targetWorkoutsPerWeek;
 
         emit GoalUpdated(msg.sender);
     }
 
-    function logWorkout(
-        WorkoutType _workoutType,
-        uint256 _durationInMins,
-        uint256 _caloriesBurned
-    ) public validateUser {
+    function logWorkout(WorkoutType _workoutType, uint256 _durationInMins, uint256 _caloriesBurned)
+        public
+        validateUser
+    {
         uint256 _sessionId = workoutSessionId + 1;
         UserProfile storage currentUser = userProfile[msg.sender];
 
         // get week number based on registration time
-        uint256 currentWeekNumber = (block.timestamp -
-            currentUser.registrationTimestamp) /
-            SECONDS_PER_WEEK +
-            1; // +1 so weeks start at 1 not 0
+        uint256 currentWeekNumber = (block.timestamp - currentUser.registrationTimestamp) / SECONDS_PER_WEEK + 1; // +1 so weeks start at 1 not 0
 
         // calculate what week the stored week starts are for
         uint256 storedWeekNumber = 0;
         if (currentUser.currentWeekStats.weekStartTimestamp > 0) {
-            storedWeekNumber =
-                (currentUser.currentWeekStats.weekStartTimestamp -
-                    currentUser.registrationTimestamp) /
-                SECONDS_PER_WEEK +
-                1;
+            storedWeekNumber = (currentUser.currentWeekStats.weekStartTimestamp - currentUser.registrationTimestamp)
+                / SECONDS_PER_WEEK + 1;
         }
 
         // iinitialize weekly starts if this is first workout
         if (storedWeekNumber != currentWeekNumber) {
             if (currentUser.currentWeekStats.weekStartTimestamp != 0) {
                 // store current weeke details
-                userWeeklyStats[msg.sender][storedWeekNumber] = currentUser
-                    .currentWeekStats;
+                userWeeklyStats[msg.sender][storedWeekNumber] = currentUser.currentWeekStats;
 
                 // Emit event that a week has completed
                 emit WeekCompleted(
@@ -190,24 +166,17 @@ contract Activity {
         currentUser.currentWeekStats.workoutsCompleted += 1;
 
         if (
-            !currentUser.currentWeekStats.weeklyWorkoutGoalMet &&
-            currentUser.currentWeekStats.workoutsCompleted >=
-            currentUser.userGoals.targetWorkoutsPerWeek
+            !currentUser.currentWeekStats.weeklyWorkoutGoalMet
+                && currentUser.currentWeekStats.workoutsCompleted >= currentUser.userGoals.targetWorkoutsPerWeek
         ) {
             currentUser.currentWeekStats.weeklyWorkoutGoalMet = true;
         }
 
-        if (
-            currentUser.currentWeekStats.totalMinutes >=
-            currentUser.userGoals.targetMinutesPerWeek
-        ) {
+        if (currentUser.currentWeekStats.totalMinutes >= currentUser.userGoals.targetMinutesPerWeek) {
             currentUser.currentWeekStats.weeklyMinutesGoalMet = true;
         }
 
-        if (
-            currentUser.currentWeekStats.totalCalories >=
-            currentUser.userGoals.targetCaloriesPerWeek
-        ) {
+        if (currentUser.currentWeekStats.totalCalories >= currentUser.userGoals.targetCaloriesPerWeek) {
             currentUser.currentWeekStats.weeklyCaloriesGoalMet = true;
         }
 
@@ -230,17 +199,10 @@ contract Activity {
         // Increment the session ID counter for next workout
         workoutSessionId = _sessionId;
 
-        emit WorkoutLogged(
-            msg.sender,
-            _workoutType,
-            _sessionId,
-            block.timestamp
-        );
+        emit WorkoutLogged(msg.sender, _workoutType, _sessionId, block.timestamp);
     }
 
-    function getWorkoutSession(
-        uint256 _sessionId
-    ) public view validateUser returns (WorkoutSession memory) {
+    function getWorkoutSession(uint256 _sessionId) public view validateUser returns (WorkoutSession memory) {
         // Verify the user owns this session
         if (!sessionOwnership[msg.sender][_sessionId]) {
             revert Activity__UnauthorizedAccess();
@@ -257,12 +219,7 @@ contract Activity {
         return session;
     }
 
-    function getUserWorkoutHistory()
-        public
-        view
-        validateUser
-        returns (uint256[] memory)
-    {
+    function getUserWorkoutHistory() public view validateUser returns (uint256[] memory) {
         return userProfile[msg.sender].workoutSessionIds;
     }
 
