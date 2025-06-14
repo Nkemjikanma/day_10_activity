@@ -5,14 +5,14 @@ import {Script, console} from "forge-std/Script.sol";
 import {Activity} from "../src/Activity.sol";
 
 contract ActivityScript is Script {
-    // Counter public counter;
+    Activity public activity;
 
     function setUp() public {}
 
     function run() public {
         vm.startBroadcast();
 
-        // counter = new Counter();
+        activity = new Activity();
 
         vm.stopBroadcast();
     }
